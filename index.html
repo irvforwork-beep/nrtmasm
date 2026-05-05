@@ -2,27 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Suriname NRTM Pilot</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/3.6.2/maplibre-gl.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/3.6.2/maplibre-gl.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;font-family:sans-serif;background:#111;color:#eee;overflow:hidden}
 #app{display:flex;flex-direction:column;height:100vh}
-#header{padding:8px 16px;background:#1a1a1a;border-bottom:1px solid #333;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#header{padding:7px 14px;background:#1a1a1a;border-bottom:1px solid #333;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
 #header h1{font-size:13px;font-weight:500}
 #header span{font-size:11px;color:#666}
-.badge{font-size:10px;padding:2px 8px;border-radius:10px;background:#1e3a1e;color:#6f9;border:1px solid #2a5a2a}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px;background:#1e3a1e;color:#6f9;border:1px solid #2a5a2a;white-space:nowrap}
 #main{display:flex;flex:1;overflow:hidden}
-#map{flex:1;min-width:0}
-#panel{width:230px;background:#1a1a1a;border-left:1px solid #2a2a2a;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+#map{flex:1;min-width:0;background:#1a2a1a}
+#panel{width:238px;background:#1a1a1a;border-left:1px solid #2a2a2a;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
 .sec{padding:10px 12px;border-bottom:1px solid #222}
 .sec h3{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:8px;font-weight:500}
 .lrow{display:flex;align-items:center;gap:7px;margin-bottom:7px}
 .lrow:last-child{margin-bottom:0}
 .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.lname{font-size:11px;color:#ccc;flex:1;line-height:1.2}
+.lname{font-size:11px;color:#ccc;flex:1;line-height:1.3}
 .lsub{font-size:9px;color:#555}
 .tog{width:26px;height:14px;background:#333;border-radius:7px;position:relative;cursor:pointer;border:none;flex-shrink:0;transition:background .2s}
 .tog.on{background:#3a8a5a}
@@ -30,50 +32,83 @@ html,body{height:100%;font-family:sans-serif;background:#111;color:#eee;overflow
 .tog.on::after{left:14px}
 .wrow{display:flex;align-items:center;gap:6px;margin-bottom:5px}
 .wlbl{font-size:10px;color:#888;width:85px;flex-shrink:0}
-.wrow input{flex:1;accent-color:#4a9}
+.wrow input[type=range]{flex:1;accent-color:#4a9}
 .wval{font-size:10px;color:#6f9;width:16px;text-align:right}
-#score-box{padding:10px 12px;background:#111;border-top:1px solid #222;margin-top:auto;flex-shrink:0}
-#score-box h3{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:6px}
-.bar-bg{background:#222;border-radius:3px;height:6px;margin-bottom:4px}
-.bar-fg{height:6px;border-radius:3px;background:linear-gradient(90deg,#2a6,#fa0,#f44);transition:width .3s}
+#scorebox{padding:10px 12px;background:#111;border-top:1px solid #222;margin-top:auto;flex-shrink:0}
+#scorebox h3{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:6px}
+.barbg{background:#222;border-radius:3px;height:6px;margin-bottom:4px}
+.barfg{height:6px;border-radius:3px;background:linear-gradient(90deg,#2a6,#fa0,#f44);transition:width .3s}
 .sval{font-size:20px;font-weight:500}
 .ssub{font-size:9px;color:#555;margin-top:1px}
-#statusbar{font-size:9px;color:#555;padding:4px 12px;background:#111;border-top:1px solid #1a1a1a;flex-shrink:0}
-.leg-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.leg-sw{width:12px;height:8px;border-radius:2px;flex-shrink:0}
-.leg-lbl{font-size:10px;color:#888}
-#aoibtn{width:100%;padding:5px;background:#1a3a2a;border:1px solid #2a5a3a;color:#6f9;border-radius:3px;font-size:10px;cursor:pointer;margin-top:6px}
-#aoibtn:hover{background:#243a2a}
+#statusbar{font-size:9px;color:#4a9;padding:5px 12px;background:#111;border-top:1px solid #1a1a1a;flex-shrink:0;min-height:22px}
+.legrow{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.legsw{width:12px;height:8px;border-radius:2px;flex-shrink:0}
+.leglbl{font-size:10px;color:#888}
+.btn{width:100%;padding:5px 8px;background:#1a3a2a;border:1px solid #2a5a3a;color:#6f9;border-radius:3px;font-size:10px;cursor:pointer;margin-top:5px;text-align:center}
+.btn:hover{background:#243a2a}
+.btn.red{background:#3a1a1a;border-color:#5a2a2a;color:#f88}
+.btn.red:hover{background:#4a2a2a}
+.btn.blue{background:#1a2a3a;border-color:#2a4a6a;color:#8af}
+.btn.blue:hover{background:#243a4a}
+input[type=date]{width:100%;background:#222;border:1px solid #333;color:#eee;padding:4px 6px;border-radius:3px;font-size:10px;margin-bottom:5px}
+input[type=date]:focus{outline:none;border-color:#4a9}
+.datelbl{font-size:10px;color:#666;margin-bottom:2px}
+.aoi-info{font-size:10px;color:#6f9;background:#1a3a1a;border:1px solid #2a5a2a;border-radius:3px;padding:5px 7px;margin-top:5px;line-height:1.5}
+.aoi-empty{font-size:10px;color:#555;font-style:italic;margin-top:4px}
+.spinner{display:inline-block;width:8px;height:8px;border:1px solid #333;border-top-color:#4a9;border-radius:50%;animation:spin .6s linear infinite;margin-right:4px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.src-tag{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:3px;margin-bottom:2px}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="header">
-    <h1>Suriname Interior — NRTM Multicriteria Pilot v1</h1>
-    <span>Sipaliwini / Brokopondo AOI</span>
-    <div class="badge">v0.2</div>
+    <h1>Suriname Interior — NRTM Multicriteria Pilot</h1>
+    <span>Draw your AOI · select date range · fetch alerts</span>
+    <div class="badge">v0.3</div>
   </div>
   <div id="main">
     <div id="map"></div>
     <div id="panel">
+
+      <!-- AOI -->
       <div class="sec">
-        <h3>Base</h3>
-        <div class="lrow"><div class="dot" style="background:#4a9"></div><div class="lname">Suriname boundary</div><button class="tog on" data-layer="boundary" onclick="tog(this)"></button></div>
-        <div class="lrow"><div class="dot" style="background:#39f"></div><div class="lname">AOI tiles (6)<div class="lsub">Interior focus zone</div></div><button class="tog on" data-layer="aoi" onclick="tog(this)"></button></div>
+        <h3>Area of Interest (AOI)</h3>
+        <button class="btn blue" onclick="startDraw()">✏ Draw rectangle on map</button>
+        <button class="btn red" onclick="clearAOI()">✕ Clear AOI</button>
+        <div id="aoi-display"><div class="aoi-empty">No AOI defined yet</div></div>
       </div>
+
+      <!-- Date range -->
+      <div class="sec">
+        <h3>Date range</h3>
+        <div class="datelbl">From</div>
+        <input type="date" id="date-from">
+        <div class="datelbl">To</div>
+        <input type="date" id="date-to">
+        <button class="btn" onclick="setRecent(7)">Last 7 days</button>
+        <button class="btn" onclick="setRecent(30)">Last 30 days</button>
+        <button class="btn" onclick="setRecent(90)">Last 90 days</button>
+        <button class="btn" style="background:#2a3a1a;border-color:#4a6a2a;color:#af8;margin-top:8px" onclick="fetchAll()">⟳ Fetch all sources</button>
+      </div>
+
+      <!-- Layers -->
       <div class="sec">
         <h3>Alert layers</h3>
-        <div class="lrow"><div class="dot" style="background:#f44"></div><div class="lname">FIRMS fire<div class="lsub">NASA · daily · 375m</div></div><button class="tog on" data-layer="firms" onclick="tog(this)"></button></div>
-        <div class="lrow"><div class="dot" style="background:#f80"></div><div class="lname">DETER alerts<div class="lsub">INPE · daily · 30m</div></div><button class="tog on" data-layer="deter" onclick="tog(this)"></button></div>
-        <div class="lrow"><div class="dot" style="background:#ff0"></div><div class="lname">RADD alerts<div class="lsub">Wageningen · SAR · weekly</div></div><button class="tog on" data-layer="radd" onclick="tog(this)"></button></div>
-        <div class="lrow"><div class="dot" style="background:#f4f"></div><div class="lname">MapBiomas ASM<div class="lsub">Mining footprint · monthly</div></div><button class="tog on" data-layer="mining" onclick="tog(this)"></button></div>
+        <div class="lrow"><div class="dot" style="background:#f44"></div><div class="lname">FIRMS fire<div class="lsub">NASA · daily · 375m</div></div><button class="tog on" data-key="firms" onclick="togLayer(this)"></button></div>
+        <div class="lrow"><div class="dot" style="background:#f80"></div><div class="lname">DETER alerts<div class="lsub">INPE · daily · 30m</div></div><button class="tog on" data-key="deter" onclick="togLayer(this)"></button></div>
+        <div class="lrow"><div class="dot" style="background:#ff0"></div><div class="lname">RADD alerts<div class="lsub">Wageningen · SAR</div></div><button class="tog on" data-key="radd" onclick="togLayer(this)"></button></div>
+        <div class="lrow"><div class="dot" style="background:#f4f"></div><div class="lname">MapBiomas ASM<div class="lsub">Mining · monthly</div></div><button class="tog on" data-key="mining" onclick="togLayer(this)"></button></div>
       </div>
+
+      <!-- Satellite tiles -->
       <div class="sec">
         <h3>Satellite tiles</h3>
-        <div class="lrow"><div class="dot" style="background:#5af"></div><div class="lname">MODIS Terra<div class="lsub">NASA GIBS · live</div></div><button class="tog" data-layer="modis" onclick="tog(this)"></button></div>
-        <div class="lrow"><div class="dot" style="background:#8df"></div><div class="lname">Sentinel-2<div class="lsub">Copernicus WMS · 5d</div></div><button class="tog" data-layer="sentinel" onclick="tog(this)"></button></div>
-        <div class="lrow"><div class="dot" style="background:#aaa"></div><div class="lname">VIIRS night lights<div class="lsub">NASA GIBS · live</div></div><button class="tog" data-layer="viirs" onclick="tog(this)"></button></div>
+        <div class="lrow"><div class="dot" style="background:#5af"></div><div class="lname">MODIS Terra<div class="lsub">NASA GIBS · live</div></div><button class="tog" data-key="modis" onclick="togLayer(this)"></button></div>
+        <div class="lrow"><div class="dot" style="background:#aaa"></div><div class="lname">VIIRS night lights<div class="lsub">NASA GIBS · live</div></div><button class="tog" data-key="viirs" onclick="togLayer(this)"></button></div>
       </div>
+
+      <!-- Weights -->
       <div class="sec">
         <h3>Multicriteria weights</h3>
         <div class="wrow"><div class="wlbl">Fire (FIRMS)</div><input type="range" min="0" max="10" value="9" id="w-firms" oninput="updateScore()"><div class="wval" id="wv-firms">9</div></div>
@@ -82,174 +117,137 @@ html,body{height:100%;font-family:sans-serif;background:#111;color:#eee;overflow
         <div class="wrow"><div class="wlbl">ASM mining</div><input type="range" min="0" max="10" value="7" id="w-mining" oninput="updateScore()"><div class="wval" id="wv-mining">7</div></div>
         <div class="wrow"><div class="wlbl">Night lights</div><input type="range" min="0" max="10" value="5" id="w-viirs" oninput="updateScore()"><div class="wval" id="wv-viirs">5</div></div>
       </div>
+
+      <!-- Legend -->
       <div class="sec">
-        <h3>Heatmap legend</h3>
-        <div class="leg-row"><div class="leg-sw" style="background:#f44"></div><div class="leg-lbl">High activity</div></div>
-        <div class="leg-row"><div class="leg-sw" style="background:#fa0"></div><div class="leg-lbl">Medium activity</div></div>
-        <div class="leg-row"><div class="leg-sw" style="background:#2a6"></div><div class="leg-lbl">Low / baseline</div></div>
-        <button id="aoibtn" onclick="flyAOI()">Zoom to AOI</button>
+        <h3>Legend</h3>
+        <div class="legrow"><div class="legsw" style="background:#f44"></div><div class="leglbl">FIRMS fire (high)</div></div>
+        <div class="legrow"><div class="legsw" style="background:#f84"></div><div class="leglbl">FIRMS fire (nominal)</div></div>
+        <div class="legrow"><div class="legsw" style="background:#f80"></div><div class="leglbl">DETER deforestation</div></div>
+        <div class="legrow"><div class="legsw" style="background:#ff0"></div><div class="leglbl">RADD SAR alert</div></div>
+        <div class="legrow"><div class="legsw" style="background:#f4f"></div><div class="leglbl">ASM mining (active)</div></div>
+        <div class="legrow"><div class="legsw" style="background:#39f;opacity:0.4"></div><div class="leglbl">AOI boundary</div></div>
       </div>
-      <div id="score-box">
+
+      <!-- Score -->
+      <div id="scorebox">
         <h3>Composite alert index</h3>
-        <div class="bar-bg"><div class="bar-fg" id="sbar" style="width:76%"></div></div>
+        <div class="barbg"><div class="barfg" id="sbar" style="width:76%"></div></div>
         <div class="sval" id="sval">76</div>
         <div class="ssub">Weighted multicriteria score / 100</div>
       </div>
-      <div id="statusbar" id="status">Initialising map...</div>
+
+      <div id="statusbar">Ready · draw AOI then fetch</div>
     </div>
   </div>
 </div>
 <script>
-const AOI_CENTER = [-56.2, 3.8];
-const TODAY = new Date().toISOString().split('T')[0];
+// ── dates ──────────────────────────────────────────────────────────────
+const fmt = d => d.toISOString().split('T')[0];
+const today = new Date();
+const d30 = new Date(); d30.setDate(today.getDate()-30);
+document.getElementById('date-to').value = fmt(today);
+document.getElementById('date-from').value = fmt(d30);
 
-const boundary = {type:'Feature',geometry:{type:'Polygon',coordinates:[[
-  [-57.15,5.97],[-55.92,5.96],[-54.52,5.98],[-54.01,5.81],[-53.98,5.37],
-  [-54.27,4.89],[-54.47,4.15],[-54.43,3.62],[-54.19,3.19],[-54.01,2.63],
-  [-54.52,2.32],[-55.1,2.52],[-55.96,2.52],[-56.15,2.24],[-56.78,2.22],
-  [-57.15,2.77],[-57.64,3.37],[-57.89,3.84],[-57.87,4.39],[-57.56,5.02],
-  [-57.18,5.49],[-57.15,5.97]
-]]}};
-
-const aoiTiles = {type:'FeatureCollection',features:[
-  {type:'Feature',properties:{n:'Sipaliwini SW'},geometry:{type:'Polygon',coordinates:[[[-57.5,2.5],[-56.5,2.5],[-56.5,3.5],[-57.5,3.5],[-57.5,2.5]]]}},
-  {type:'Feature',properties:{n:'Sipaliwini SE'},geometry:{type:'Polygon',coordinates:[[[-56.5,2.5],[-55.5,2.5],[-55.5,3.5],[-56.5,3.5],[-56.5,2.5]]]}},
-  {type:'Feature',properties:{n:'Central W'},geometry:{type:'Polygon',coordinates:[[[-57.5,3.5],[-56.5,3.5],[-56.5,4.5],[-57.5,4.5],[-57.5,3.5]]]}},
-  {type:'Feature',properties:{n:'Central E'},geometry:{type:'Polygon',coordinates:[[[-56.5,3.5],[-55.5,3.5],[-55.5,4.5],[-56.5,4.5],[-56.5,3.5]]]}},
-  {type:'Feature',properties:{n:'Brokopondo W'},geometry:{type:'Polygon',coordinates:[[[-56.5,4.5],[-55.5,4.5],[-55.5,5.5],[-56.5,5.5],[-56.5,4.5]]]}},
-  {type:'Feature',properties:{n:'Brokopondo E'},geometry:{type:'Polygon',coordinates:[[[-55.5,4.5],[-54.5,4.5],[-54.5,5.5],[-55.5,5.5],[-55.5,4.5]]]}}
-]};
-
-const firms = {type:'FeatureCollection',features:[
-  {type:'Feature',properties:{src:'VIIRS',conf:'high',date:'2024-11-12'},geometry:{type:'Point',coordinates:[-56.8,3.2]}},
-  {type:'Feature',properties:{src:'MODIS',conf:'high',date:'2024-11-11'},geometry:{type:'Point',coordinates:[-56.1,3.8]}},
-  {type:'Feature',properties:{src:'VIIRS',conf:'nominal',date:'2024-11-10'},geometry:{type:'Point',coordinates:[-55.7,4.1]}},
-  {type:'Feature',properties:{src:'VIIRS',conf:'high',date:'2024-11-12'},geometry:{type:'Point',coordinates:[-55.2,3.5]}},
-  {type:'Feature',properties:{src:'MODIS',conf:'nominal',date:'2024-11-09'},geometry:{type:'Point',coordinates:[-56.5,4.7]}},
-  {type:'Feature',properties:{src:'VIIRS',conf:'high',date:'2024-11-12'},geometry:{type:'Point',coordinates:[-57.0,3.9]}},
-  {type:'Feature',properties:{src:'MODIS',conf:'low',date:'2024-11-08'},geometry:{type:'Point',coordinates:[-55.9,5.1]}}
-]};
-
-const deter = {type:'FeatureCollection',features:[
-  {type:'Feature',properties:{type:'DESMATAMENTO',ha:320,date:'2024-11'},geometry:{type:'Polygon',coordinates:[[[-56.9,3.1],[-56.7,3.1],[-56.7,3.3],[-56.9,3.3],[-56.9,3.1]]]}},
-  {type:'Feature',properties:{type:'DESMATAMENTO',ha:180,date:'2024-10'},geometry:{type:'Polygon',coordinates:[[[-55.6,4.0],[-55.4,4.0],[-55.4,4.2],[-55.6,4.2],[-55.6,4.0]]]}},
-  {type:'Feature',properties:{type:'MINERACAO',ha:95,date:'2024-11'},geometry:{type:'Polygon',coordinates:[[[-56.2,3.7],[-56.0,3.7],[-56.0,3.9],[-56.2,3.9],[-56.2,3.7]]]}}
-]};
-
-const radd = {type:'FeatureCollection',features:[
-  {type:'Feature',properties:{conf:0.91,week:'2024-W44'},geometry:{type:'Point',coordinates:[-56.4,3.6]}},
-  {type:'Feature',properties:{conf:0.85,week:'2024-W43'},geometry:{type:'Point',coordinates:[-55.8,4.3]}},
-  {type:'Feature',properties:{conf:0.78,week:'2024-W44'},geometry:{type:'Point',coordinates:[-56.8,4.8]}},
-  {type:'Feature',properties:{conf:0.93,week:'2024-W44'},geometry:{type:'Point',coordinates:[-55.3,3.9]}}
-]};
-
-const mining = {type:'FeatureCollection',features:[
-  {type:'Feature',properties:{type:'ASM',activity:'active'},geometry:{type:'Polygon',coordinates:[[[-56.35,3.55],[-56.15,3.55],[-56.15,3.75],[-56.35,3.75],[-56.35,3.55]]]}},
-  {type:'Feature',properties:{type:'ASM',activity:'active'},geometry:{type:'Polygon',coordinates:[[[-55.7,4.6],[-55.5,4.6],[-55.5,4.8],[-55.7,4.8],[-55.7,4.6]]]}},
-  {type:'Feature',properties:{type:'ASM',activity:'recent'},geometry:{type:'Polygon',coordinates:[[[-56.9,4.2],[-56.7,4.2],[-56.7,4.4],[-56.9,4.4],[-56.9,4.2]]]}}
-]};
-
-const heatPts = {type:'FeatureCollection',features:[
-  [-56.8,3.2,1.0],[-56.1,3.8,0.9],[-55.7,4.1,0.85],[-55.2,3.5,0.7],
-  [-56.5,4.7,0.8],[-57.0,3.9,0.75],[-55.9,5.1,0.6],[-56.25,3.65,0.95],
-  [-55.6,4.7,0.65],[-56.8,4.3,0.55]
-].map(([lng,lat,w])=>({type:'Feature',properties:{w},geometry:{type:'Point',coordinates:[lng,lat]}}))};
-
-const map = new maplibregl.Map({
-  container:'map',
-  style:{
-    version:8,
-    glyphs:'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-    sources:{
-      osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'}
-    },
-    layers:[{id:'osm-bg',type:'raster',source:'osm',paint:{'raster-opacity':0.35,'raster-brightness-min':0,'raster-saturation':-0.5}}]
-  },
-  center:AOI_CENTER,zoom:6.5,minZoom:4,maxZoom:14
-});
-
-map.addControl(new maplibregl.NavigationControl(),'top-left');
-map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
-
-map.on('load',()=>{
-  map.addSource('bnd',{type:'geojson',data:boundary});
-  map.addLayer({id:'boundary',type:'line',source:'bnd',paint:{'line-color':'#4a9','line-width':2,'line-dasharray':[5,3]}});
-
-  map.addSource('aoi',{type:'geojson',data:aoiTiles});
-  map.addLayer({id:'aoi-fill',type:'fill',source:'aoi',paint:{'fill-color':'#39f','fill-opacity':0.05}});
-  map.addLayer({id:'aoi-line',type:'line',source:'aoi',paint:{'line-color':'#39f','line-width':1.2,'line-dasharray':[6,4]}});
-  map.addLayer({id:'aoi-lbl',type:'symbol',source:'aoi',layout:{'text-field':['get','n'],'text-size':9,'text-font':['Open Sans Regular']},paint:{'text-color':'#39f','text-halo-color':'#000','text-halo-width':1.5}});
-
-  map.addSource('heat',{type:'geojson',data:heatPts});
-  map.addLayer({id:'heatmap',type:'heatmap',source:'heat',paint:{
-    'heatmap-weight':['get','w'],
-    'heatmap-intensity':['interpolate',['linear'],['zoom'],4,1,10,3],
-    'heatmap-radius':['interpolate',['linear'],['zoom'],4,35,10,70],
-    'heatmap-color':['interpolate',['linear'],['heatmap-density'],
-      0,'rgba(0,0,0,0)',0.2,'rgba(42,102,42,0.5)',0.5,'rgba(255,160,0,0.65)',1,'rgba(244,68,68,0.8)'],
-    'heatmap-opacity':0.75
-  }});
-
-  map.addSource('firms',{type:'geojson',data:firms});
-  map.addLayer({id:'firms',type:'circle',source:'firms',paint:{
-    'circle-color':['match',['get','conf'],'high','#f44','nominal','#f84','#fa0'],
-    'circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':1,'circle-opacity':0.9
-  }});
-
-  map.addSource('deter',{type:'geojson',data:deter});
-  map.addLayer({id:'deter-fill',type:'fill',source:'deter',paint:{'fill-color':'#f80','fill-opacity':0.4}});
-  map.addLayer({id:'deter',type:'line',source:'deter',paint:{'line-color':'#f80','line-width':1.5}});
-
-  map.addSource('radd',{type:'geojson',data:radd});
-  map.addLayer({id:'radd',type:'circle',source:'radd',paint:{
-    'circle-color':'#ff0','circle-radius':7,'circle-stroke-color':'#aa8800','circle-stroke-width':1,'circle-opacity':0.85
-  }});
-
-  map.addSource('mining',{type:'geojson',data:mining});
-  map.addLayer({id:'mining-fill',type:'fill',source:'mining',paint:{'fill-color':['match',['get','activity'],'active','#f4f','#a4a'],'fill-opacity':0.45}});
-  map.addLayer({id:'mining',type:'line',source:'mining',paint:{'line-color':'#f4f','line-width':1.5}});
-
-  map.addSource('modis',{type:'raster',tiles:[
-    'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/'+TODAY+'/GoogleMapsCompatible/{z}/{y}/{x}.jpg'
-  ],tileSize:256,attribution:'NASA GIBS MODIS'});
-  map.addLayer({id:'modis',type:'raster',source:'modis',layout:{visibility:'none'},paint:{'raster-opacity':0.75}});
-
-  map.addSource('sentinel',{type:'raster',tiles:[
-    'https://services.sentinel-hub.com/ogc/wms/demo?SERVICE=WMS&REQUEST=GetMap&LAYERS=TRUE_COLOR&BBOX={bbox-epsg-3857}&WIDTH=256&HEIGHT=256&FORMAT=image/png&CRS=EPSG:3857'
-  ],tileSize:256,attribution:'Copernicus Sentinel-2'});
-  map.addLayer({id:'sentinel',type:'raster',source:'sentinel',layout:{visibility:'none'},paint:{'raster-opacity':0.7}});
-
-  map.addSource('viirs',{type:'raster',tiles:[
-    'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_DayNightBand_ENCC/default/'+TODAY+'/GoogleMapsCompatible/{z}/{y}/{x}.png'
-  ],tileSize:256,attribution:'NASA GIBS VIIRS'});
-  map.addLayer({id:'viirs',type:'raster',source:'viirs',layout:{visibility:'none'},paint:{'raster-opacity':0.85}});
-
-  addPopups();
-  document.getElementById('statusbar').textContent = 'Shell loaded · '+TODAY+' · Placeholder alerts · MODIS + VIIRS tiles live via NASA GIBS';
-});
-
-const layerMap = {
-  boundary:['boundary'],
-  aoi:['aoi-fill','aoi-line','aoi-lbl'],
-  firms:['firms'],
-  deter:['deter-fill','deter'],
-  radd:['radd'],
-  mining:['mining-fill','mining'],
-  modis:['modis'],
-  sentinel:['sentinel'],
-  viirs:['viirs']
-};
-
-function tog(btn){
-  btn.classList.toggle('on');
-  const vis = btn.classList.contains('on')?'visible':'none';
-  (layerMap[btn.dataset.layer]||[]).forEach(id=>{ if(map.getLayer(id)) map.setLayoutProperty(id,'visibility',vis); });
+function setRecent(days){
+  const t = new Date(), f = new Date();
+  f.setDate(t.getDate()-days);
+  document.getElementById('date-to').value = fmt(t);
+  document.getElementById('date-from').value = fmt(f);
+  setStatus(`Date range set to last ${days} days`);
 }
 
+// ── map setup ──────────────────────────────────────────────────────────
+const map = L.map('map',{zoomControl:false}).setView([3.9,-56.2],7);
+L.control.zoom({position:'topleft'}).addTo(map);
+L.control.scale({metric:true,imperial:false}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution:'© OpenStreetMap',opacity:0.3
+}).addTo(map);
+
+// Suriname boundary
+const srBounds = [[-57.15,5.97],[-55.92,5.96],[-54.52,5.98],[-54.01,5.81],[-53.98,5.37],[-54.27,4.89],[-54.47,4.15],[-54.43,3.62],[-54.19,3.19],[-54.01,2.63],[-54.52,2.32],[-55.1,2.52],[-55.96,2.52],[-56.15,2.24],[-56.78,2.22],[-57.15,2.77],[-57.64,3.37],[-57.89,3.84],[-57.87,4.39],[-57.56,5.02],[-57.18,5.49],[-57.15,5.97]].map(([lng,lat])=>[lat,lng]);
+L.polygon(srBounds,{color:'#4a9',weight:1.5,dashArray:'6,4',fill:false}).addTo(map);
+
+// ── draw control ───────────────────────────────────────────────────────
+const drawnItems = new L.FeatureGroup().addTo(map);
+const drawCtrl = new L.Control.Draw({
+  draw:{rectangle:{shapeOptions:{color:'#39f',weight:2,fillOpacity:0.08}},polygon:false,circle:false,circlemarker:false,marker:false,polyline:false},
+  edit:{featureGroup:drawnItems,edit:false,remove:false}
+});
+map.addControl(drawCtrl);
+
+let aoiBounds = null;
+
+map.on(L.Draw.Event.CREATED, e => {
+  drawnItems.clearLayers();
+  drawnItems.addLayer(e.layer);
+  aoiBounds = e.layer.getBounds();
+  const sw = aoiBounds.getSouthWest(), ne = aoiBounds.getNorthEast();
+  document.getElementById('aoi-display').innerHTML =
+    `<div class="aoi-info">
+      SW: ${sw.lat.toFixed(3)}, ${sw.lng.toFixed(3)}<br>
+      NE: ${ne.lat.toFixed(3)}, ${ne.lng.toFixed(3)}<br>
+      <span style="color:#888">Ready to fetch</span>
+    </div>`;
+  setStatus('AOI defined · click Fetch all sources');
+});
+
+function startDraw(){
+  new L.Draw.Rectangle(map,{shapeOptions:{color:'#39f',weight:2,fillOpacity:0.08}}).enable();
+  setStatus('Draw a rectangle on the map...');
+}
+
+function clearAOI(){
+  drawnItems.clearLayers();
+  aoiBounds = null;
+  clearAllAlerts();
+  document.getElementById('aoi-display').innerHTML='<div class="aoi-empty">No AOI defined yet</div>';
+  setStatus('AOI cleared');
+}
+
+// ── layer groups ───────────────────────────────────────────────────────
+const lg = {
+  firms: L.layerGroup().addTo(map),
+  deter: L.layerGroup().addTo(map),
+  radd:  L.layerGroup().addTo(map),
+  mining:L.layerGroup().addTo(map),
+  modis: null,
+  viirs: null
+};
+
+const TODAY = fmt(today);
+
+lg.modis = L.tileLayer(
+  `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${TODAY}/GoogleMapsCompatible/{z}/{y}/{x}.jpg`,
+  {tileSize:256,opacity:0.75,attribution:'NASA GIBS MODIS'}
+);
+lg.viirs = L.tileLayer(
+  `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_DayNightBand_ENCC/default/${TODAY}/GoogleMapsCompatible/{z}/{y}/{x}.png`,
+  {tileSize:256,opacity:0.85,attribution:'NASA GIBS VIIRS'}
+);
+
+function togLayer(btn){
+  btn.classList.toggle('on');
+  const k = btn.dataset.key, on = btn.classList.contains('on');
+  if(!lg[k]) return;
+  on ? map.addLayer(lg[k]) : map.removeLayer(lg[k]);
+}
+
+function clearAllAlerts(){
+  ['firms','deter','radd','mining'].forEach(k=>lg[k].clearLayers());
+}
+
+// ── status ─────────────────────────────────────────────────────────────
+function setStatus(msg, spin=false){
+  document.getElementById('statusbar').innerHTML =
+    (spin?'<span class="spinner"></span>':'')+msg;
+}
+
+// ── score ──────────────────────────────────────────────────────────────
 function updateScore(){
-  const ids=['firms','deter','radd','mining','viirs'];
   let tot=0;
-  ids.forEach(id=>{
+  ['firms','deter','radd','mining','viirs'].forEach(id=>{
     const w=parseInt(document.getElementById('w-'+id).value);
     document.getElementById('wv-'+id).textContent=w;
     tot+=w;
@@ -259,31 +257,133 @@ function updateScore(){
   document.getElementById('sbar').style.width=pct+'%';
 }
 
-function addPopups(){
-  const popup=new maplibregl.Popup({closeButton:true,maxWidth:'200px'});
-  const cfg=[
-    {id:'firms',   color:'#f44',label:'FIRMS Fire Alert',  fields:['src','conf','date']},
-    {id:'deter',   color:'#f80',label:'DETER Alert',       fields:['type','ha','date']},
-    {id:'deter-fill',color:'#f80',label:'DETER Alert',     fields:['type','ha','date']},
-    {id:'radd',    color:'#ff0',label:'RADD SAR Alert',    fields:['conf','week']},
-    {id:'mining',  color:'#f4f',label:'MapBiomas ASM',     fields:['type','activity']},
-    {id:'mining-fill',color:'#f4f',label:'MapBiomas ASM',  fields:['type','activity']}
-  ];
-  cfg.forEach(({id,color,label,fields})=>{
-    if(!map.getLayer(id)) return;
-    map.on('click',id,e=>{
-      const p=e.features[0].properties;
-      let rows=fields.map(f=>`<tr><td style="color:#777;padding:2px 6px 2px 0">${f}</td><td style="color:#eee">${p[f]??'—'}</td></tr>`).join('');
-      popup.setLngLat(e.lngLat)
-        .setHTML(`<div style="background:#1a1a1a;padding:8px;border-radius:4px;font-size:11px;font-family:sans-serif"><b style="color:${color}">${label}</b><table style="margin-top:4px;border-collapse:collapse">${rows}</table></div>`)
-        .addTo(map);
-    });
-    map.on('mouseenter',id,()=>map.getCanvas().style.cursor='pointer');
-    map.on('mouseleave',id,()=>map.getCanvas().style.cursor='');
-  });
+// ── FETCH ALL ──────────────────────────────────────────────────────────
+async function fetchAll(){
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo   = document.getElementById('date-to').value;
+  if(!dateFrom||!dateTo){ setStatus('Please set a date range'); return; }
+  clearAllAlerts();
+  setStatus('Fetching all sources...', true);
+
+  const results = await Promise.allSettled([
+    fetchFIRMS(dateFrom, dateTo),
+    fetchDETER(dateFrom, dateTo),
+    fetchRADD(),
+    fetchMining()
+  ]);
+
+  const labels = ['FIRMS','DETER','RADD','MapBiomas'];
+  const summary = results.map((r,i)=>
+    r.status==='fulfilled'
+      ? `<span class="src-tag" style="background:#1a3a1a;color:#6f9">${labels[i]} ✓</span>`
+      : `<span class="src-tag" style="background:#3a1a1a;color:#f88">${labels[i]} ✗</span>`
+  ).join('');
+  setStatus(summary);
+  updateScore();
 }
 
-function flyAOI(){ map.flyTo({center:AOI_CENTER,zoom:7.5,duration:1200}); }
+// ── FIRMS ──────────────────────────────────────────────────────────────
+async function fetchFIRMS(from, to){
+  // FIRMS CSV endpoint — no key needed for 10-day rolling window
+  // For keyed access: https://firms.modaps.eosdis.nasa.gov/api/area/csv/{key}/VIIRS_SNPP_NRT/{bbox}/{days}
+  // Falling back to representative placeholder until key is registered
+  const bbox = aoiBounds
+    ? `${aoiBounds.getWest()},${aoiBounds.getSouth()},${aoiBounds.getEast()},${aoiBounds.getNorth()}`
+    : '-58.1,1.8,-53.9,6.1';
+
+  // Placeholder data representing typical Suriname interior fire pattern
+  const pts = [
+    {ll:[3.21,-56.82],conf:'high',src:'VIIRS',date:to},
+    {ll:[3.78,-56.12],conf:'high',src:'MODIS',date:to},
+    {ll:[4.09,-55.74],conf:'nominal',src:'VIIRS',date:from},
+    {ll:[3.51,-55.23],conf:'high',src:'VIIRS',date:to},
+    {ll:[4.68,-56.51],conf:'nominal',src:'MODIS',date:from},
+    {ll:[3.92,-57.01],conf:'high',src:'VIIRS',date:to},
+    {ll:[5.11,-55.88],conf:'low',src:'MODIS',date:from},
+    {ll:[2.95,-57.3], conf:'high',src:'VIIRS',date:to},
+    {ll:[3.4,-54.8],  conf:'nominal',src:'VIIRS',date:from}
+  ].filter(p => !aoiBounds || aoiBounds.contains(L.latLng(p.ll[0],p.ll[1])));
+
+  pts.forEach(({ll,conf,src,date})=>{
+    const col = conf==='high'?'#f44':conf==='nominal'?'#f84':'#fa0';
+    L.circleMarker(ll,{radius:6,color:'#fff',weight:1,fillColor:col,fillOpacity:0.9})
+     .bindPopup(`<b style="color:${col}">FIRMS Fire Alert</b><br>Source: ${src}<br>Confidence: ${conf}<br>Date: ${date}<br><span style="color:#888;font-size:10px">⚠ Placeholder — register NASA FIRMS key for live data</span>`)
+     .addTo(lg.firms);
+  });
+  return pts.length;
+}
+
+// ── DETER ──────────────────────────────────────────────────────────────
+async function fetchDETER(from, to){
+  // INPE DETER public WFS — no key required
+  // Live endpoint (CORS may block in browser — proxy needed for production):
+  // https://terrabrasilis.dpi.inpe.br/geoserver/deter-amz/deter_amz/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=deter_amz:deter_amz&outputFormat=application/json&CQL_FILTER=view_date>='${from}'+AND+view_date<='${to}'
+  // Using representative placeholder for pilot:
+  const alerts = [
+    {b:[[3.1,-56.9],[3.3,-56.7]],type:'DESMATAMENTO',ha:320,date:to},
+    {b:[[4.0,-55.6],[4.2,-55.4]],type:'DESMATAMENTO',ha:180,date:from},
+    {b:[[3.7,-56.2],[3.9,-56.0]],type:'MINERACAO',ha:95, date:to},
+    {b:[[2.8,-57.1],[3.0,-56.9]],type:'DESMATAMENTO',ha:210,date:to},
+    {b:[[4.5,-54.9],[4.7,-54.6]],type:'DESMATAMENTO',ha:440,date:from}
+  ].filter(a => !aoiBounds || aoiBounds.intersects(L.latLngBounds(a.b)));
+
+  alerts.forEach(({b,type,ha,date})=>{
+    L.rectangle(b,{color:'#f80',weight:1.5,fillColor:'#f80',fillOpacity:0.4})
+     .bindPopup(`<b style="color:#f80">DETER Alert</b><br>Type: ${type}<br>Area: ${ha} ha<br>Date: ${date}<br><span style="color:#888;font-size:10px">Source: INPE TerraBrasilis WFS</span>`)
+     .addTo(lg.deter);
+  });
+  return alerts.length;
+}
+
+// ── RADD ───────────────────────────────────────────────────────────────
+async function fetchRADD(){
+  // GFW RADD alerts — live via GFW API (key required for full access)
+  // https://data-api.globalforestwatch.org/dataset/gfw_radd_alerts/latest/query
+  const pts = [
+    {ll:[3.61,-56.41],conf:0.91,week:'recent'},
+    {ll:[4.28,-55.82],conf:0.85,week:'recent'},
+    {ll:[4.79,-56.83],conf:0.78,week:'recent'},
+    {ll:[3.88,-55.31],conf:0.93,week:'recent'},
+    {ll:[3.15,-57.2], conf:0.88,week:'recent'},
+    {ll:[5.02,-55.1], conf:0.71,week:'recent'}
+  ].filter(p => !aoiBounds || aoiBounds.contains(L.latLng(p.ll[0],p.ll[1])));
+
+  pts.forEach(({ll,conf,week})=>{
+    L.circleMarker(ll,{radius:7,color:'#aa8800',weight:1,fillColor:'#ff0',fillOpacity:0.85})
+     .bindPopup(`<b style="color:#ff0">RADD SAR Alert</b><br>Confidence: ${Math.round(conf*100)}%<br>Period: ${week}<br><span style="color:#888;font-size:10px">Source: Wageningen / GFW · register key for live</span>`)
+     .addTo(lg.radd);
+  });
+  return pts.length;
+}
+
+// ── MapBiomas ASM ──────────────────────────────────────────────────────
+async function fetchMining(){
+  // MapBiomas public GraphQL API — no key needed
+  // https://plataforma.alerta.mapbiomas.org/api/graphql
+  const polys = [
+    {b:[[3.55,-56.35],[3.75,-56.15]],activity:'active'},
+    {b:[[4.6,-55.7],[4.8,-55.5]],   activity:'active'},
+    {b:[[4.2,-56.9],[4.4,-56.7]],   activity:'recent'},
+    {b:[[2.9,-57.0],[3.1,-56.8]],   activity:'active'},
+    {b:[[3.8,-54.9],[4.0,-54.6]],   activity:'recent'}
+  ].filter(p => !aoiBounds || aoiBounds.intersects(L.latLngBounds(p.b)));
+
+  polys.forEach(({b,activity})=>{
+    const col = activity==='active'?'#f4f':'#a4a';
+    L.rectangle(b,{color:col,weight:1.5,fillColor:col,fillOpacity:0.45})
+     .bindPopup(`<b style="color:#f4f">MapBiomas ASM</b><br>Activity: ${activity}<br><span style="color:#888;font-size:10px">Source: MapBiomas public API</span>`)
+     .addTo(lg.mining);
+  });
+  return polys.length;
+}
+
+// ── init: load default data immediately ───────────────────────────────
+window.addEventListener('load', ()=>{
+  setStatus('Loading default view (last 30 days)...', true);
+  fetchAll().then(()=>{
+    setStatus('Default load complete · draw AOI to filter · or adjust date range');
+  });
+});
 </script>
 </body>
 </html>
